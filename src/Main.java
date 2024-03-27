@@ -18,16 +18,23 @@ public class Main {
             if (connection != null) {
                 System.out.println("Połączono z bazą danych Oracle!");
                 Statement statement = connection.createStatement();
-                String createTypeQuery = "CREATE OR REPLACE TYPE book_type AS OBJECT (title VARCHAR2(200), author VARCHAR2(100), pages NUMBER, genre VARCHAR2(100))";
-                statement.execute(createTypeQuery);
-                System.out.println("Typ obiektowy book_type został pomyślnie utworzony.");
+//                String createTypeQuery = "CREATE OR REPLACE TYPE book_type AS OBJECT (title VARCHAR2(200), author VARCHAR2(100), pages NUMBER, genre VARCHAR2(100))";
+//                statement.execute(createTypeQuery);
+//                System.out.println("Typ obiektowy book_type został pomyślnie utworzony.");
 
 
-                String createTableQuery = "CREATE TABLE books (book_id NUMBER PRIMARY KEY, book_details book_type)";
-                statement.execute(createTableQuery);
-                System.out.println("Tabela books została pomyślnie utworzona.");
+
 
                 Class<?> carClass = Class.forName("Car");
+
+                Class<?> superClass = carClass.getSuperclass();
+
+
+                if (superClass != null) {
+                    System.out.println("Klasa Car dziedziczy po klasie: " + superClass.getName());
+                } else {
+                    System.out.println("Klasa Car nie ma klasy nadrzędnej.");
+                }
 
                 System.out.println("Pola klasy Car:");
                 Field[] carFields = carClass.getDeclaredFields();
