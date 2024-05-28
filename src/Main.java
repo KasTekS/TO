@@ -1,52 +1,72 @@
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        Scanner scanner = new Scanner(System.in);
 
-        String url = "jdbc:oracle:thin:@localhost:1521:xe";
-        String username = "c##kamil";
-        String password = "mazur";
+        System.out.println("Podaj adres bazy danych (np. localhost:1521:xe):");
+        String dbUrl = scanner.nextLine();
+        System.out.println("Podaj nazwę użytkownika:");
+        String username = scanner.nextLine();
+        System.out.println("Podaj hasło:");
+        String password = scanner.nextLine();
 
+        try (Connection connection = DriverManager.getConnection("jdbc:oracle:thin:@" + dbUrl, username, password)) {
+            Statement statement = connection.createStatement();
 
-        try {
-            Connection connection = DriverManager.getConnection(url, username, password);
-            if (connection != null) {
-                System.out.println("Połączono z bazą danych Oracle!");
-                Statement statement = connection.createStatement();
-//                String createTypeQuery = "CREATE OR REPLACE TYPE book_type AS OBJECT (title VARCHAR2(200), author VARCHAR2(100), pages NUMBER, genre VARCHAR2(100))";
-//                statement.execute(createTypeQuery);
-//                System.out.println("Typ obiektowy book_type został pomyślnie utworzony.");
+            boolean exit = false;
 
+            JavaToOracleMapper1 mapper1 = new JavaToOracleMapper1();
+            StaticMethodEnhancer enhancer = new StaticMethodEnhancer();
+            JavaToOracleMapper mapper = new JavaToOracleMapper();
 
+            while (!exit) {
+                System.out.println("Wybierz opcję:");
+                System.out.println("1. Mapowanie klasy Java na Oracle bardzo prosta, nie polecana");
+                System.out.println("2. Dodanie metod statycznych do klasy za pomocą zeby mogło zadziałać rozbudowane mapowanie");
+                System.out.println("3. Rozbudowane mapowanie klasy Java na Oracle (mapowanie klas i konstruktorów)");
+                System.out.println("4. Wyjście");
 
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Pobranie znaku nowej linii
 
-                Class<?> carClass = Class.forName("Car");
-
-                Class<?> superClass = carClass.getSuperclass();
-
-
-                if (superClass != null) {
-                    System.out.println("Klasa Car dziedziczy po klasie: " + superClass.getName());
-                } else {
-                    System.out.println("Klasa Car nie ma klasy nadrzędnej.");
+                switch (choice) {
+                    case 1:
+                        System.out.println("Podaj nazwę klasy do zmapowania:");
+                        String className1 = scanner.nextLine();
+                        try {
+                            mapper1.generateOracleTypeScript(className1, statement);
+                        } catch (Exception e) {
+                            System.out.println("Błąd: " + e.getMessage());
+                        }
+                        break;
+                    case 2:
+                        System.out.println("Podaj nazwę klasy do dodania metod statycznych:");
+                        String className2 = scanner.nextLine();
+                        enhancer.enhanceClass(className2, dbUrl, username, password);
+                        break;
+                    case 3:
+                        System.out.println("Podaj nazwę klasy do zmapowania :");
+                        String className3 = scanner.nextLine();
+                        mapper.generateOracleTypeScript(className3, statement);
+                        break;
+                    case 4:
+                        exit = true;
+                        break;
+                    default:
+                        System.out.println("Nieprawidłowy wybór. Spróbuj ponownie.");
                 }
-
-                System.out.println("Pola klasy Car:");
-                Field[] carFields = carClass.getDeclaredFields();
-                for (Field field : carFields) {
-                    System.out.println("- " + field.getName() + " (typ: " + field.getType().getSimpleName() + ")");
-                }
-                connection.close();
             }
+
+            statement.close();
         } catch (SQLException e) {
-            System.out.println("Błąd podczas połączenia z bazą danych: " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            System.out.println("Błąd połączenia z bazą danych: " + e.getMessage());
         }
+
+        scanner.close();
     }
 }
